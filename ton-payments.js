@@ -358,14 +358,46 @@ ${consecutivePollFailures} consecutive toncenter requests have failed.
   if (dirtyCredits)   await saveCredits();
 }
 
-// Loose comparison — TonConnect and toncenter can report addresses in
-// different formats (raw "0:abc..." vs user-friendly "EQ..."/"UQ...").
-// This is intentionally forgiving: it strips the workchain prefix and
-// compares the tail. Good enough to flag obvious mismatches without
-// requiring a full address-parsing library; not a strict cryptographic check.
+// A TON address has one canonical identity: (workchain, 32-byte account
+// hash). Everything else — the bounceable flag, the testnet-only flag,
+// even the checksum — is just presentation on top of that. Two friendly
+// addresses that differ ONLY in those flags (e.g. "UQ..." vs "EQ..." vs
+// "0Q...") refer to the exact same account, but their strings look
+// completely different because the flag byte feeds into the CRC16
+// checksum at the end. Comparing raw strings (the old approach) produces
+// false "sender mismatch" alerts for genuine, correct payments —
+// TonConnect gives us one flag variant, toncenter reports another.
+function parseTonAddress(addr) {
+  if (!addr) return null;
+  addr = addr.trim();
+
+  // Raw form: "<workchain>:<64 hex chars>"
+  if (/^-?\d+:[A-Fa-f0-9]{64}$/.test(addr)) {
+    const [wc, hash] = addr.split(':');
+    return { workchain: parseInt(wc, 10), hashHex: hash.toLowerCase() };
+  }
+
+  // User-friendly form: 48 base64url chars -> 36 raw bytes
+  // [flags(1) | workchain(1) | account hash(32) | crc16(2)]
+  if (!/^[A-Za-z0-9_-]{48}$/.test(addr)) return null;
+  try {
+    let b64 = addr.replace(/-/g, '+').replace(/_/g, '/');
+    while (b64.length % 4) b64 += '=';
+    const bytes = Buffer.from(b64, 'base64');
+    if (bytes.length !== 36) return null;
+    const workchain = bytes[1] === 0xff ? -1 : bytes[1];
+    const hashHex = bytes.slice(2, 34).toString('hex');
+    return { workchain, hashHex };
+  } catch {
+    return null;
+  }
+}
+
 function addressesRoughlyMatch(a, b) {
-  const norm = (s) => s.replace(/^[-\w]*:/, '').slice(-48).toLowerCase();
-  return norm(a) === norm(b);
+  const pa = parseTonAddress(a);
+  const pb = parseTonAddress(b);
+  if (!pa || !pb) return false; // unparseable — fail closed, same as before (goes to manual review)
+  return pa.workchain === pb.workchain && pa.hashHex === pb.hashHex;
 }
 
 // ============================================
