@@ -79,12 +79,14 @@ if (!FRIENDLY_ADDR_RE.test(MERCHANT_WALLET) && !RAW_ADDR_RE.test(MERCHANT_WALLET
 // ============================================
 
 const TON_PACKAGES = {
-  ton_tiny:   { amountTon: 0.5, stars: 200,   label: 'Tiny TON Package' },
-  ton_small:  { amountTon: 1,   stars: 400,   label: 'Small TON Package' },
-  ton_medium: { amountTon: 3,   stars: 1200,  label: 'Medium TON Package' },
-  ton_large:  { amountTon: 5,   stars: 2000,  label: 'Large TON Package' },
-  ton_xl:     { amountTon: 10,  stars: 4000,  label: 'XL TON Package' },
-  ton_mega:   { amountTon: 25,  stars: 10000, label: 'Mega TON Package' }
+  ton_tiny:   { amountTon: 1.86, stars: 200,   label: 'Tiny TON Package' },
+  ton_small:  { amountTon: 4.66,   stars: 500,   label: 'Small TON Package' },
+  ton_medium: { amountTon: 9.32,   stars: 1000,  label: 'Medium TON Package' },
+  ton_large:  { amountTon: 23.3,   stars: 2500,  label: 'Large TON Package' },
+  ton_xl:     { amountTon: 46.61,  stars: 5000,  label: 'XL TON Package' },
+  ton_mega:   { amountTon: 93.22,  stars: 10000, label: 'Mega TON Package' },
+  ton_super:  { amountTon: 233.05, stars: 25000, label: 'Seper TON Package'},
+  ton_omega:  { amountTon: 466.1,  stars: 50000, label: 'Omega TON Package'}
 };
 
 // ============================================
